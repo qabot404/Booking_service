@@ -1,0 +1,33 @@
+from constants import BASE_URL
+
+def test_patch_booking(aut_session, booking_data):
+    # Создаем бронирование
+    create_booking = aut_session.post(
+        f"{BASE_URL}/booking",
+        json=booking_data
+    )
+    assert create_booking.status_code == 200, "Ошибка при создании брони"
+
+    booking_id = create_booking.json().get("bookingid")
+    assert booking_id is not None, "Идентификатор брони не найден в ответе"
+
+    # Обновляем только некоторые данные бронирования
+    updated_booking_data = {
+        "firstname": "John",
+        "totalprice" : 10000
+    }
+
+    # Выполняем PATCH запрос
+    updated_booking = aut_session.patch(
+        f"{BASE_URL}/booking/{booking_id}",
+        json=updated_booking_data
+    )
+    assert updated_booking.status_code == 200, "Ошибка при обновлении брони"
+
+    # Проверка на то, что бронирование обновилось
+    get_booking = aut_session.get(
+        f"{BASE_URL}/booking/{booking_id}"
+    )
+    assert get_booking.status_code == 200, "Бронь не найдена"
+    assert get_booking.json()["firstname"] == updated_booking_data["firstname"], "Имя не обновилось"
+    assert get_booking.json()["totalprice"] == updated_booking_data["totalprice"], "Стоимость не обновилась"
