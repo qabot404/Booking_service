@@ -1,17 +1,25 @@
-from constants import BASE_URL
+from constants import BOOKING_BY_ID_ENDPOINT
 
 
-def test_put_booking_with_invalid_token(aut_session, booking_data):
+def test_put_booking_with_invalid_token(requester, booking_data):
     # Отправка PUT-запроса с неверным токеном
-    update_booking = aut_session.put(
-        f"{BASE_URL}/booking/99999",
-        json=booking_data,
-        headers={"Cookie": "token=invalidtoken"}
+    requester.session.headers.update(
+        {
+            "Cookie": "token=invalidtoken",
+        }
     )
-    assert update_booking.status_code == 403, "Обновление бронирования с недействительным токеном запрещено"
+
+    requester.send_request(
+        method="PUT",
+        endpoint=BOOKING_BY_ID_ENDPOINT.format(
+            booking_id=99999
+        ),
+        data=booking_data,
+        expected_status=403,
+    )
 
 
-def test_update_booking_missing_required_field(aut_session, booking_data):
+def test_update_booking_missing_required_field(requester, booking_data):
     # Отправка PUT-запроса с пропущенным обязательным полем
     updated_booking_data = {
         "firstname": "Jane",
@@ -19,13 +27,16 @@ def test_update_booking_missing_required_field(aut_session, booking_data):
         "depositpaid": False,
         "bookingdates": {
             "checkin": "2025-05-05",
-            "checkout": "2025-05-08"
+            "checkout": "2025-05-08",
         },
-        "additionalneeds": "Breakfast"
+        "additionalneeds": "Breakfast",
     }
 
-    update_booking = aut_session.put(
-        f"{BASE_URL}/booking/1",
-        json=updated_booking_data
+    requester.send_request(
+        method="PUT",
+        endpoint=BOOKING_BY_ID_ENDPOINT.format(
+            booking_id=1
+        ),
+        data=updated_booking_data,
+        expected_status=400,
     )
-    assert update_booking.status_code == 400, "Ошибка при попытке обновления бронирования с пропущенными обязательными полями"

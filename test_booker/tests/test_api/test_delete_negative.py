@@ -1,26 +1,30 @@
-from constants import BASE_URL, HEADERS
+from constants import BOOKING_BY_ID_ENDPOINT
 
 
-def test_delete_booking_with_invalid_token(aut_session):
+def test_delete_booking_with_invalid_token(requester):
     # Запрос на удаление с неверным токеном
-    response = aut_session.delete(
-        f"{BASE_URL}/booking/99999",
-        headers={"Cookie": "token=invalidtoken"}
+    requester._update_session_headers(
+        Cookie="token=invalidtoken",
     )
-    assert response.status_code == 403, "Удаление с неверным токеном должно быть отклонено"
+
+    requester.send_request(
+        method="DELETE",
+        endpoint=BOOKING_BY_ID_ENDPOINT.format(booking_id=99999),
+        expected_status=403,
+    )
 
 
-def test_delete_booking_twice(aut_session):
+def test_delete_booking_twice(requester):
     # Попытка удалить несуществующее бронирование
-    aut_session.delete(
-        f"{BASE_URL}/booking/99999",
-        headers=HEADERS
+    requester.send_request(
+        method="DELETE",
+        endpoint=BOOKING_BY_ID_ENDPOINT.format(booking_id=99999),
+        expected_status=405,
     )
 
     # Повторная попытка удаления того же ID
-    response = aut_session.delete(
-        f"{BASE_URL}/booking/99999",
-        headers=HEADERS
+    requester.send_request(
+        method="DELETE",
+        endpoint=BOOKING_BY_ID_ENDPOINT.format(booking_id=99999),
+        expected_status=405,
     )
-
-    assert response.status_code == 405, "Повторное удаление бронирования должно быть отклонено"

@@ -1,25 +1,29 @@
-from constants import BASE_URL, HEADERS
+from constants import BOOKING_BY_ID_ENDPOINT
 
 
-
-def test_patch_booking_invalid_json(aut_session):
+def test_patch_booking_invalid_json(requester):
     # Запрос с некорректным JSON
-    update_booking = aut_session.patch(
-        f"{BASE_URL}/booking/1",
+    responses = requester.session.patch(
+        f"{requester.base_url}/booking/1",
         data="{invalid_json",
-        headers=HEADERS
     )
-    assert update_booking.status_code == 400, "Некорректный JSON в PATCH-запросе должен приводить к ошибке"
+
+    assert responses.status_code == 400
 
 
-def test_patch_invalid_token(aut_session):
+def test_patch_invalid_token(requester):
     # Запрос с неверным токеном
-    update_booking = aut_session.patch(
-        f"{BASE_URL}/booking/1",
-        json={"firstname": "Test"},
-        headers={"Cookie": "token=invalidtoken"}
+    requester.session.headers.update(
+        {
+            "Cookie": "token=invalidtoken",
+        }
     )
 
-    assert update_booking.status_code == 403, "PATCH с некорректной авторизацией должен быть отклонён"
-
-
+    requester.send_request(
+        method="PATCH",
+        endpoint=BOOKING_BY_ID_ENDPOINT.format(
+            booking_id=1
+        ),
+        data={"firstname": "Test"},
+        expected_status=403,
+    )

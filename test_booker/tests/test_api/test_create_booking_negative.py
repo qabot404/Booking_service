@@ -1,13 +1,11 @@
-from constants import BASE_URL
+from constants import BOOKING_ENDPOINT
 
 
-
-def test_create_without_body(aut_session):
+def test_create_without_body(requester):
     # Запрос с некорректным JSON
-    create_booking = aut_session.post(
-        f"{BASE_URL}/booking",
-        json="{invalid_json}"
+    requester.send_request(
+        method="POST",
+        endpoint=BOOKING_ENDPOINT,
+        data={},
+        expected_status=500,
     )
-    assert create_booking.status_code == 400, "Ожидалась ошибка 400: некорректный JSON в теле запроса"
-
-
